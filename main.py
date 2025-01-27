@@ -23,6 +23,7 @@ def summary(df):
 
 def main():
     st.title("Auto EDA")
+    st.sidebar.title("Auto EDA")
     st.sidebar.title("Upload Dataset")
 
     file = st.sidebar.file_uploader("Choose a CSV file", type=["csv"])
