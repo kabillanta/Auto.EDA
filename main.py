@@ -12,6 +12,7 @@ from langchain.schema.output_parser import StrOutputParser
 
 load_dotenv()
 
+
 model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", api_key=os.getenv('GEMINI_API_KEY'), max_tokens=1000)
 
 def summary(df): 
@@ -118,6 +119,8 @@ def show_graphs(df):
 
 
 def main():
+
+    st.set_page_config(page_title="Auto.EDA", page_icon="📊")  
     st.title("Auto EDA")
     st.sidebar.title("Auto EDA")
     st.sidebar.title("Upload Dataset")
