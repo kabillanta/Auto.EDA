@@ -1,5 +1,7 @@
 python-dotenv
 pandas
 streamlit
+matplotlib
+seaborn
 langchain-google-genai
 langchain
