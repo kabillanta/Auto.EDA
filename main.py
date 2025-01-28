@@ -1,4 +1,6 @@
 import os
+import re
+import json
 from dotenv import load_dotenv
 import pandas as pd
 import streamlit as st 
@@ -63,7 +65,56 @@ def analysis_for_graphs(df):
     prompt_template = ChatPromptTemplate.from_messages(messages)
     chain = prompt_template | model | StrOutputParser()
     result = chain.invoke({'column_names':str(df.columns.to_list()),'metadata':str(metadata)})
-    return result
+    # This line removes code block markers (```python and ```) which we got from AI 
+    result = re.sub(r"```[\s\S]*?\n|\n```", "", result)
+    result_dict = json.loads(result)
+    return result_dict
+
+
+
+def show_graphs(df):
+    visualizations = analysis_for_graphs(df) 
+    for column, plot_type in visualizations.items():
+        fig, ax = plt.subplots(figsize=(8, 5))
+        
+        if plot_type == "Histogram":
+            sns.histplot(df[column], bins=20, kde=True, color="blue", ax=ax)
+            ax.set_xlabel(column)
+            ax.set_ylabel("Frequency")
+
+        elif plot_type == "Box Plot":
+            sns.boxplot(y=df[column], palette="coolwarm", ax=ax)
+            ax.set_ylabel(column)
+
+        elif plot_type == "Bar Chart":
+            sns.countplot(x=df[column], palette="viridis", ax=ax)
+            ax.set_xlabel(column)
+            ax.set_ylabel("Count")
+
+        elif plot_type == "Pie Chart":
+            df[column].value_counts().plot.pie(autopct='%1.1f%%', cmap="viridis", ax=ax)
+            ax.set_ylabel("")
+
+        elif plot_type == "Line Chart":
+            df[column].plot(kind='line', ax=ax)
+            ax.set_xlabel("Index")
+            ax.set_ylabel(column)
+
+        elif plot_type == "Scatter Plot":
+            num_cols = df.select_dtypes(include=['number']).columns
+            if len(num_cols) >= 2:
+                sns.scatterplot(x=df[num_cols[0]], y=df[num_cols[1]], ax=ax)
+                ax.set_xlabel(num_cols[0])
+                ax.set_ylabel(num_cols[1])
+
+        else:
+            st.write(f"🚫 No Visualization Needed for {column}")
+            continue  
+
+        ax.set_title(f"{plot_type} of {column}")
+        plt.xticks(rotation=45) 
+
+        st.pyplot(fig)
 
 
 def main():
@@ -71,8 +122,14 @@ def main():
     st.sidebar.title("Auto EDA")
     st.sidebar.title("Upload Dataset")
 
+
     file = st.sidebar.file_uploader("Choose a CSV file", type=["csv"])
-    
+
+    with st.sidebar.container():
+        st.markdown("<br><br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)  
+        st.markdown("---") 
+        st.markdown("**Disclaimer:** Some parts of this app are AI-generated and may not be 100% accurate.")  
+
     if file is not None:
         df = pd.read_csv(file)
         st.write("### AI Summary")
@@ -91,7 +148,7 @@ def main():
         st.write(df.shape)
         st.write("### Missing Values:")
         st.dataframe(df.isnull().sum(),use_container_width=True)
-        st.write(analysis_for_graphs(df))
+        show_graphs(df)
     else:
         st.write("Upload a CSV file to get started!")
 
