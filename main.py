@@ -226,7 +226,7 @@ def main():
         st.dataframe(df.isnull().sum(),use_container_width=True)
         st.write("### Feature Pair Analysis:")
         show_pairwise_graphs(df)
-        st.write("Univariate Analysis:")
+        st.write("### Univariate Analysis:")
         show_graphs(df)
     else:
         st.write("Upload a CSV file to get started!")
