@@ -26,6 +26,23 @@ def summary(df):
     result = chain.invoke({"datasample": df.head(10).to_string(index=False)})
     return result
 
+def load_data(file):
+    file_extension = file.name.split(".")[-1]
+
+    if file_extension == "csv":
+        df = pd.read_csv(file)
+    elif file_extension in ["xls", "xlsx"]:
+        df = pd.read_excel(file, engine="openpyxl")  # Excel support
+    elif file_extension == "json":
+        df = pd.read_json(file)
+    elif file_extension == "parquet":
+        df = pd.read_parquet(file)
+    else:
+        st.error("Unsupported file format!")
+        return None
+
+    return df
+
 def analysis_for_graphs(df):
     metadata = {col: {
         "dtype": "categorical" if df[col].dtype == "object" else "numerical",
@@ -196,10 +213,11 @@ def main():
     st.set_page_config(page_title="Auto.EDA", page_icon="📊")  
     st.title("Auto EDA")
     st.sidebar.title("Auto EDA")
+    st.sidebar.write("A tool for automating exploratory data analysis (EDA), offering quick insights and visualizations.")
+
     st.sidebar.title("Upload Dataset")
 
-
-    file = st.sidebar.file_uploader("Choose a CSV file", type=["csv"])
+    file = st.sidebar.file_uploader("Choose a file", type=["csv", "xlsx", "json", "parquet"])
 
     with st.sidebar.container():
         st.markdown("<br><br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)  
@@ -207,7 +225,7 @@ def main():
         st.markdown("**Disclaimer:** Some parts of this app are AI-generated and may not be 100% accurate.")  
 
     if file is not None:
-        df = pd.read_csv(file)
+        df = load_data(file)
         st.write("### AI Summary")
         st.write(summary(df))
         st.write("### Dataset Preview:")
