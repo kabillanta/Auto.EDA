@@ -71,7 +71,45 @@ def analysis_for_graphs(df):
     result_dict = json.loads(result)
     return result_dict
 
+def suggest_feature_pairs(df):
+    messages = [
+        ("system", "You are an expert in data visualization and EDA."),
+        ("human", '''
+        Based on the dataset summary and column names, suggest the **top 5 most meaningful feature pairs** for visualization.
+        
+        ### **Guidelines:**
+        - **Numerical vs Numerical:** Use `"Scatter Plot"` or `"Line Chart"` if time-based.
+        - **Categorical vs Numerical:** Use `"Box Plot"` or `"Violin Plot"`.
+        - **Categorical vs Categorical:** Use `"Stacked Bar Chart"`.
 
+        ### **Column Names:**
+        {column_names}
+
+        ### **Summary:**
+        {summary}
+
+        ### **Expected JSON Output:**
+        ```json
+        {{
+            "pair_1": ["feature_x", "feature_y", "Visualization Type"],
+            "pair_2": ["feature_x", "feature_y", "Visualization Type"],
+            "pair_3": ["feature_x", "feature_y", "Visualization Type"],
+            "pair_4": ["feature_x", "feature_y", "Visualization Type"],
+            "pair_5": ["feature_x", "feature_y", "Visualization Type"]
+        }}
+        ```
+        ''')
+    ]
+
+    prompt_template = ChatPromptTemplate.from_messages(messages)
+    chain = prompt_template | model | StrOutputParser()
+    result = chain.invoke({"column_names": str(df.columns.to_list()), "summary": summary(df)})
+
+    # Clean AI response and convert JSON to dictionary
+    result = re.sub(r"```[\s\S]*?\n|\n```", "", result)
+    result_dict = json.loads(result)
+
+    return result_dict
 
 def show_graphs(df):
     visualizations = analysis_for_graphs(df) 
@@ -117,6 +155,41 @@ def show_graphs(df):
 
         st.pyplot(fig)
 
+def show_pairwise_graphs(df):
+    feature_pairs = suggest_feature_pairs(df)
+
+    for key, (x_feature, y_feature, plot_type) in feature_pairs.items():
+        fig, ax = plt.subplots(figsize=(8, 5))
+
+        if plot_type == "Scatter Plot":
+            sns.scatterplot(x=df[x_feature], y=df[y_feature], ax=ax)
+            ax.set_xlabel(x_feature)
+            ax.set_ylabel(y_feature)
+
+        elif plot_type == "Line Chart":
+            df.plot(x=x_feature, y=y_feature, kind='line', ax=ax)
+            ax.set_xlabel(x_feature)
+            ax.set_ylabel(y_feature)
+
+        elif plot_type == "Box Plot":
+            sns.boxplot(x=df[x_feature], y=df[y_feature], ax=ax)
+
+        elif plot_type == "Violin Plot":
+            sns.violinplot(x=df[x_feature], y=df[y_feature], ax=ax)
+
+        elif plot_type == "Stacked Bar Chart":
+            cross_tab = pd.crosstab(df[x_feature], df[y_feature])
+            cross_tab.plot(kind='bar', stacked=True, colormap='viridis', ax=ax)
+
+        else:
+            st.write(f"🚫 No Visualization Needed for {x_feature} vs {y_feature}")
+            continue  
+
+        ax.set_title(f"{plot_type} of {x_feature} vs {y_feature}")
+        plt.xticks(rotation=45)
+
+        st.pyplot(fig)
+
 
 def main():
 
@@ -151,6 +224,9 @@ def main():
         st.write(df.shape)
         st.write("### Missing Values:")
         st.dataframe(df.isnull().sum(),use_container_width=True)
+        st.write("### Feature Pair Analysis:")
+        show_pairwise_graphs(df)
+        st.write("Univariate Analysis:")
         show_graphs(df)
     else:
         st.write("Upload a CSV file to get started!")
