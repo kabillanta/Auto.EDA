@@ -10,4 +10,4 @@ if not api_key:
 model = ChatGoogleGenerativeAI(model="models/gemini-flash-lite-latest", api_key=api_key)
 
 resp = model.invoke("Who is Donald trump")
-print(resp.content)
+print(resp.content) 
