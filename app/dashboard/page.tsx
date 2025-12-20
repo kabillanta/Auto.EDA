@@ -18,12 +18,14 @@ import {
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import DownloadButton from "@/components/DownloadButton";
 
 export default function Dashboard() {
   const [file, setFile] = useState<File | null>(null);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reportReady, setReportReady] = useState(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const handleUpload = async () => {
@@ -37,7 +39,7 @@ export default function Dashboard() {
     
     try {
       const res = await axios.post(
-  `${API_BASE}/api/analyze-test`,
+  `${API_BASE}/api/analyze`,
   formData
 );
       setData(res.data);
@@ -47,6 +49,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownload = () => {
+    // Logic to download the PDF/CSV
+    console.log("Downloading report...");
   };
 
   return (
@@ -140,6 +147,9 @@ export default function Dashboard() {
 
         {/* 3. Output Console (Results) */}
         <div className="lg:col-span-8 space-y-6">
+          <div className="flex justify-end">
+            <DownloadButton isReady={!!data} onDownload={handleDownload} />
+          </div>
           {data ? (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Summary Module */}
