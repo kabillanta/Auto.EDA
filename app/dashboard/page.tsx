@@ -14,11 +14,12 @@ import {
   Cpu,
   FileCode,
   AlertCircle,
+  Download,
+  FileX,
 } from "lucide-react";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
-import DownloadButton from "@/components/DownloadButton";
 
 export default function Dashboard() {
   const [file, setFile] = useState<File | null>(null);
@@ -36,12 +37,9 @@ export default function Dashboard() {
 
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
-      const res = await axios.post(
-  `${API_BASE}/api/analyze`,
-  formData
-);
+      const res = await axios.post(`${API_BASE}/api/analyze`, formData);
       setData(res.data);
     } catch (err) {
       console.error(err);
@@ -52,10 +50,9 @@ export default function Dashboard() {
   };
 
   const handleDownload = () => {
-    // Logic to download the PDF/CSV
+    // Logic is yet to be written brother.
     console.log("Downloading report...");
   };
-
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-300 font-sans selection:bg-indigo-500/30">
       {/* 1. Technical Navbar */}
@@ -142,14 +139,39 @@ export default function Dashboard() {
                 <p className="text-xs text-red-400">{error}</p>
               </div>
             )}
+            <button
+              onClick={handleDownload}
+              disabled={!data}
+              className={`
+                w-full mt-4 relative overflow-hidden group flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-bold transition-all duration-300
+                ${
+                  data
+                    ? "bg-[#5B7FFF] text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 hover:scale-[1.02] active:scale-95 cursor-pointer"
+                    : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed"
+                }
+              `}
+            >
+              {/* Icon Switcher */}
+              {data ? (
+                <Download className="w-5 h-5 animate-bounce-short" />
+              ) : (
+                <FileX className="w-5 h-5" />
+              )}
+
+              <span>
+                {data ? "Download Analysis Report" : "Waiting for Report..."}
+              </span>
+
+              {/* Optional: Shine Effect when ready */}
+              {data && (
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10" />
+              )}
+            </button>
           </div>
         </div>
 
         {/* 3. Output Console (Results) */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex justify-end">
-            <DownloadButton isReady={!!data} onDownload={handleDownload} />
-          </div>
           {data ? (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Summary Module */}
