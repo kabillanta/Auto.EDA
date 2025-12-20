@@ -37,7 +37,7 @@ export default function Dashboard() {
     
     try {
       const res = await axios.post(
-  `${API_BASE}/api/analyze-test`,
+  `${API_BASE}/api/analyze`,
   formData
 );
       setData(res.data);
