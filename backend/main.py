@@ -29,7 +29,7 @@ app = FastAPI(title="Auto EDA Backend")
 # 2. CORS Setup (Crucial for Next.js communication)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=["http://localhost:3000", "https://autoeda.kabillanta.me"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -373,7 +373,7 @@ async def analyze_dataset(file: UploadFile = File(...)):
     }
 
 
-@app.post("/health")
+@app.get("/health")
 async def health_check():
     return 'OK'
 
