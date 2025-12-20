@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const handleUpload = async () => {
     if (!file) return;
@@ -33,12 +34,12 @@ export default function Dashboard() {
 
     const formData = new FormData();
     formData.append("file", file);
-
+    
     try {
       const res = await axios.post(
-        "http://localhost:8000/api/analyze-test",
-        formData
-      );
+  `${API_BASE}/api/analyze-test`,
+  formData
+);
       setData(res.data);
     } catch (err) {
       console.error(err);
